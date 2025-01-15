@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "wsctrl"
+version = "0.1.0"
+description = ""
+authors = ["Jan Kowalewski <jkowalewski@cthings.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+wirepas-gateway = {path = "../gateway/python_transport/dist/wirepas_gateway-1.4.5-cp312-cp312-linux_x86_64.whl"}
+pygobject = "^3.50.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
