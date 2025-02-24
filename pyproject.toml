@@ -1,16 +1,19 @@
-[tool.poetry]
+[project]
 name = "wsctrl"
 version = "0.1.0"
-description = ""
-authors = ["Jan Kowalewski <jkowalewski@cthings.co>"]
+description = "Wirepas Sink Controller"
+authors = [
+    {name="Jan Kowalewski", email="<jkowalewski@cthings.co>"}
+]
+license = {text = "Apache-2.0"}
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.12"
-wirepas-gateway = {path = "../gateway/python_transport/dist/wirepas_gateway-1.4.5-cp312-cp312-linux_x86_64.whl"}
-pygobject = "^3.50.0"
-
+requires-python = ">=3.11"
+dependencies = [
+    "pkgconfig (>=1.5.5)",
+    "wirepas-gateway (>=1.4.5)",
+    "PyGobject (>=3.50)"
+]
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
