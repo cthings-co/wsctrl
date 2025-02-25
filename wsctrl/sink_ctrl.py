@@ -150,19 +150,6 @@ class SinkController(BusClient):
                 )
                 logger.debug(f"Data sent over {sink}: {payload_coded}")
 
-    def _scan_network(self):
-        for sink_id in self._sink_id_set:
-            sink = self._get_sink(sink_id)
-            if sink:
-                res = sink.start_scan()
-                if res == 1:
-                    for nbor in sink.get_nbors():
-                        self._nbors.extend(Nbor(nbor) for nbor in sink.get_nbors())
-
-        logger.debug("Detected Neighbors:")
-        for n in self._nbors:
-            n.dump_info()
-
     def initialize_sink(self):
         try:
             self._start_sinks()
@@ -208,17 +195,6 @@ class SinkController(BusClient):
         await self._recv_event.wait()
         self._recv_event.clear()
         return response_queue.get()
-
-    def scan_network(self):
-        for sink in self.sink_manager.get_sinks():
-            res = sink.start_scan()
-            if (res == 1):
-                for nbor in sink.get_nbors():
-                    self.nbors.append(Nbor(nbor))
-
-        logging.info("Detected Neighbors:")
-        for n in self.nbors:
-            n.dump_info()
 
     @property
     def nbors(self) -> list:
