@@ -1,8 +1,11 @@
 [project]
 name = "wsctrl"
-version = "0.1.0"
+version = "1.0.0"
 description = "Wirepas Sink Controller"
 authors = [
+    {name="Jan Kowalewski", email="<jkowalewski@cthings.co>"}
+]
+maintainers = [
     {name="Jan Kowalewski", email="<jkowalewski@cthings.co>"}
 ]
 license = {text = "Apache-2.0"}
