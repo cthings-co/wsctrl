@@ -11,3 +11,7 @@ This repository provides following interfaces:
 * `Nbor` - Information about Neighbors of a Sink (currently unusable due to blocked PR: https://github.com/wirepas/gateway/pull/296)
 
 The reference example how to use above interfaces can be found in WMB-Controller repository: https://github.com/cthings-co/wmb-controller
+
+## NOTE
+
+For Debian 12 and lower, before installing `wsctrl`, install: `pip install pygobject==3.50` due to `libgirepository-2.0-dev` being not available.
