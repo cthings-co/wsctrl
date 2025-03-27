@@ -15,7 +15,6 @@ from wirepas_gateway.dbus.dbus_client import BusClient
 
 logger = logging.getLogger(__name__)
 
-poll_cb_sem = threading.Semaphore(value=0)
 response_queue = mp.Queue()
 
 
@@ -107,16 +106,8 @@ class SinkController(BusClient):
         self._sink_id_set = set(sink_ids)
 
         self.c_extension_thread.start()
-        self._recv_event = asyncio.Event()
+        self._recv_sem = asyncio.Semaphore(value=0)
         self._loop = asyncio.get_running_loop()
-        self._poll_thread = threading.Thread(target=self._poll_data_ready, args=(self._loop, self._recv_event,))
-        self._poll_thread.daemon = True
-        self._poll_thread.start()
-
-    def _poll_data_ready(self, loop, event):
-        while True:
-            poll_cb_sem.acquire()
-            loop.call_soon_threadsafe(event.set)
 
     def _get_sink(self, sink_id):
         """Helper function to retrieve a sink by ID efficiently."""
@@ -185,15 +176,14 @@ class SinkController(BusClient):
         # Source and Destination EPs filtering if applied
         if (not self._pm and (src_ep != self.dst_ep or dst_ep != self.src_ep)):
             return
-        response_queue.put(response)
-        poll_cb_sem.release()
+        response_queue.put(response, False)
+        self._loop.call_soon_threadsafe(self._recv_sem.release)
 
     def receive(self):
         return response_queue.get()
 
     async def async_receive(self):
-        await self._recv_event.wait()
-        self._recv_event.clear()
+        await self._recv_sem.acquire()
         return response_queue.get()
 
     @property
