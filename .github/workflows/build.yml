@@ -1,0 +1,89 @@
+name: wsctrl CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    name: Build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+            python-version: '3.12'
+
+      - name: Install libs, pkg-config and pipx
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libgirepository-2.0-dev libsystemd-dev pkg-config pipx
+
+      - name: Install Poetry and Twine
+        run:  |
+          pipx install poetry twine
+
+      - name: Configure Poetry
+        run: poetry config virtualenvs.create true
+
+      - name: Install dependencies
+        run: poetry install --no-root --no-interaction --sync
+
+      - name: Build with Poetry
+        run: poetry build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist-folder
+          path: dist/
+
+      - name: Check if tag matches version pattern
+        if: startsWith(github.ref, 'refs/tags/')
+        id: tag_check
+        run: |
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "IS_VERSION=true" >> $GITHUB_ENV
+          else
+            echo "IS_VERSION=false" >> $GITHUB_ENV
+          fi
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: env.IS_VERSION == 'true'
+        with:
+         prerelease: false
+         files: |
+           dist/*.whl
+           dist/*.tar.gz
+
+      - name: Prerelease
+        uses: softprops/action-gh-release@v2
+        if: env.IS_VERSION == 'false'
+        with:
+         prerelease: true
+         files: |
+           dist/*.whl
+           dist/*.tar.gz
+
+      - name: Publish to PyPI
+        if: env.IS_VERSION == 'true'
+        run: |
+          poetry run twine upload -u __token__ -p ${{ secrets.PYPI_PROD }} dist/*
+
+      - name: Publish to test PyPI
+        if: env.IS_VERSION == 'false'
+        run: |
+          poetry run twine upload -u __token__ -p ${{ secrets.PYPI_DEV }} --repository testpypi dist/*
